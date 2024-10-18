@@ -29,26 +29,23 @@
 #ifdef HAS_3_0_API
 #else
 static unsigned int algo_hash_cnt, algo_hash_fips_cnt;
-static ERL_NIF_TERM algo_hash[16];   /* increase when extending the list */
-void init_hash_types(ErlNifEnv* env);
+static ERL_NIF_TERM algo_hash[16]; /* increase when extending the list */
+void init_hash_types(ErlNifEnv *env);
 #endif
 
 static unsigned int algo_pubkey_cnt, algo_pubkey_fips_cnt;
 static ERL_NIF_TERM algo_pubkey[12]; /* increase when extending the list */
-void init_pubkey_types(ErlNifEnv* env);
+void init_pubkey_types(ErlNifEnv *env);
 
 static ERL_NIF_TERM algo_curve[2][89]; /* increase when extending the list */
-static ErlNifMutex* mtx_init_curve_types;
-static int get_curve_cnt(ErlNifEnv* env, int fips);
+static ErlNifMutex *mtx_init_curve_types;
+static int get_curve_cnt(ErlNifEnv *env, int fips);
 
 static unsigned int algo_rsa_opts_cnt, algo_rsa_opts_fips_cnt;
 static ERL_NIF_TERM algo_rsa_opts[11]; /* increase when extending the list */
-void init_rsa_opts_types(ErlNifEnv* env);
+void init_rsa_opts_types(ErlNifEnv *env);
 
-
-
-
-void init_algorithms_types(ErlNifEnv* env)
+void init_algorithms_types(ErlNifEnv *env)
 {
 #ifdef HAS_3_0_API
 #else
@@ -59,18 +56,19 @@ void init_algorithms_types(ErlNifEnv* env)
     /* ciphers and macs are initiated statically */
 }
 
-
 int create_curve_mutex(void)
 {
-    if (!mtx_init_curve_types) {
-        mtx_init_curve_types =  enif_mutex_create("init_curve_types");
+    if (!mtx_init_curve_types)
+    {
+        mtx_init_curve_types = enif_mutex_create("init_curve_types");
     }
     return !!mtx_init_curve_types;
 }
 
 void destroy_curve_mutex(void)
 {
-    if (mtx_init_curve_types) {
+    if (mtx_init_curve_types)
+    {
         enif_mutex_destroy(mtx_init_curve_types);
         mtx_init_curve_types = NULL;
     }
@@ -80,12 +78,12 @@ void destroy_curve_mutex(void)
   Hash algorithms
 */
 
-ERL_NIF_TERM hash_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ERL_NIF_TERM hash_algorithms(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
 #ifdef HAS_3_0_API
     return digest_types_as_list(env);
 #else
-    unsigned int cnt  =
+    unsigned int cnt =
         FIPS_MODE() ? algo_hash_fips_cnt : algo_hash_cnt;
 
     return enif_make_list_from_array(env, algo_hash, cnt);
@@ -94,7 +92,8 @@ ERL_NIF_TERM hash_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
 #ifdef HAS_3_0_API
 #else
-void init_hash_types(ErlNifEnv* env) {
+void init_hash_types(ErlNifEnv *env)
+{
     // Validated algorithms first
     algo_hash_cnt = 0;
     algo_hash[algo_hash_cnt++] = atom_sha;
@@ -145,7 +144,7 @@ void init_hash_types(ErlNifEnv* env) {
     algo_hash[algo_hash_cnt++] = enif_make_atom(env, "ripemd160");
 #endif
 
-    ASSERT(algo_hash_cnt <= sizeof(algo_hash)/sizeof(ERL_NIF_TERM));
+    ASSERT(algo_hash_cnt <= sizeof(algo_hash) / sizeof(ERL_NIF_TERM));
 }
 #endif
 
@@ -153,15 +152,16 @@ void init_hash_types(ErlNifEnv* env) {
   Public key algorithms
 */
 
-ERL_NIF_TERM pubkey_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ERL_NIF_TERM pubkey_algorithms(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
-    unsigned int cnt  =
+    unsigned int cnt =
         FIPS_MODE() ? algo_pubkey_fips_cnt : algo_pubkey_cnt;
 
     return enif_make_list_from_array(env, algo_pubkey, cnt);
 }
 
-void init_pubkey_types(ErlNifEnv* env) {
+void init_pubkey_types(ErlNifEnv *env)
+{
     // Validated algorithms first
     algo_pubkey_cnt = 0;
     algo_pubkey[algo_pubkey_cnt++] = enif_make_atom(env, "rsa");
@@ -189,35 +189,32 @@ void init_pubkey_types(ErlNifEnv* env) {
 #endif
     algo_pubkey[algo_pubkey_cnt++] = enif_make_atom(env, "srp");
 
-    ASSERT(algo_pubkey_cnt <= sizeof(algo_pubkey)/sizeof(ERL_NIF_TERM));
+    ASSERT(algo_pubkey_cnt <= sizeof(algo_pubkey) / sizeof(ERL_NIF_TERM));
 }
-
 
 /*================================================================
   Cipher key algorithms
 */
 
-ERL_NIF_TERM cipher_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ERL_NIF_TERM cipher_algorithms(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
     return cipher_types_as_list(env); /* Exclude old api ciphers */
 }
-
 
 /*================================================================
   MAC key algorithms
 */
 
-ERL_NIF_TERM mac_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ERL_NIF_TERM mac_algorithms(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
     return mac_types_as_list(env);
 }
-
 
 /*================================================================
   Curves
 */
 
-ERL_NIF_TERM curve_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ERL_NIF_TERM curve_algorithms(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
     int fips_mode;
     int algo_curve_cnt;
@@ -228,32 +225,40 @@ ERL_NIF_TERM curve_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[
     return enif_make_list_from_array(env, algo_curve[fips_mode], algo_curve_cnt);
 }
 
-static int init_curves(ErlNifEnv* env, int fips);
+static int init_curves(ErlNifEnv *env, int fips);
 #if defined(HAVE_EC)
 static int valid_curve(int nid);
 #endif
 
-int get_curve_cnt(ErlNifEnv* env, int fips) {
+int get_curve_cnt(ErlNifEnv *env, int fips)
+{
     static int algo_curve_cnt = -1;
     static int algo_curve_fips_cnt = -1;
     int cnt = 0;
-    if (0 == fips && algo_curve_cnt >= 0) {
+    if (0 == fips && algo_curve_cnt >= 0)
+    {
         return algo_curve_cnt;
     }
 
-    if (1 == fips && algo_curve_fips_cnt >= 0) {
+    if (1 == fips && algo_curve_fips_cnt >= 0)
+    {
         return algo_curve_fips_cnt;
     }
 
     enif_mutex_lock(mtx_init_curve_types);
-    if (1 == fips) {
-        if (algo_curve_fips_cnt >= 0) {
+    if (1 == fips)
+    {
+        if (algo_curve_fips_cnt >= 0)
+        {
             return algo_curve_fips_cnt;
         }
         algo_curve_fips_cnt = init_curves(env, 1);
         cnt = algo_curve_fips_cnt;
-    } else {
-        if (algo_curve_cnt >= 0) {
+    }
+    else
+    {
+        if (algo_curve_cnt >= 0)
+        {
             return algo_curve_cnt;
         }
         algo_curve_cnt = init_curves(env, 0);
@@ -264,356 +269,439 @@ int get_curve_cnt(ErlNifEnv* env, int fips) {
     return cnt;
 }
 
-int init_curves(ErlNifEnv* env, int fips) {
+int init_curves(ErlNifEnv *env, int fips)
+{
 #if defined(HAVE_EC)
     int cnt = 0;
 
 #ifdef NID_secp160k1
-    if (valid_curve(NID_secp160k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp160k1"); 
+    if (valid_curve(NID_secp160k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp160k1");
 #else
 #endif
 #ifdef NID_secp160r1
-    if (valid_curve(NID_secp160r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp160r1"); 
+    if (valid_curve(NID_secp160r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp160r1");
 #else
 #endif
 #ifdef NID_secp160r2
-    if (valid_curve(NID_secp160r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp160r2"); 
+    if (valid_curve(NID_secp160r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp160r2");
 #else
 #endif
 #ifdef NID_secp192k1
-    if (valid_curve(NID_secp192k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp192k1"); 
+    if (valid_curve(NID_secp192k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp192k1");
 #else
 #endif
 #ifdef NID_secp224k1
-    if (valid_curve(NID_secp224k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp224k1"); 
+    if (valid_curve(NID_secp224k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp224k1");
 #else
 #endif
 #ifdef NID_secp224r1
-    if (valid_curve(NID_secp224r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp224r1"); 
+    if (valid_curve(NID_secp224r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp224r1");
 #else
 #endif
 #ifdef NID_secp256k1
-    if (valid_curve(NID_secp256k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp256k1"); 
+    if (valid_curve(NID_secp256k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp256k1");
 #else
 #endif
 #ifdef NID_secp384r1
-    if (valid_curve(NID_secp384r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp384r1"); 
+    if (valid_curve(NID_secp384r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp384r1");
 #else
 #endif
 #ifdef NID_secp521r1
-    if (valid_curve(NID_secp521r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp521r1"); 
+    if (valid_curve(NID_secp521r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp521r1");
 #else
 #endif
 #ifdef NID_X9_62_prime192v1
-    if (valid_curve(NID_X9_62_prime192v1)) {
-        algo_curve[fips][cnt++] = enif_make_atom(env,"secp192r1");
-        algo_curve[fips][cnt++] = enif_make_atom(env,"prime192v1");
+    if (valid_curve(NID_X9_62_prime192v1))
+    {
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp192r1");
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime192v1");
     }
 #else
 #endif
 #ifdef NID_X9_62_prime192v2
-    if (valid_curve(NID_X9_62_prime192v2)) algo_curve[fips][cnt++] = enif_make_atom(env,"prime192v2");
+    if (valid_curve(NID_X9_62_prime192v2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime192v2");
 #else
 #endif
 #ifdef NID_X9_62_prime192v3
-    if (valid_curve(NID_X9_62_prime192v3)) algo_curve[fips][cnt++] = enif_make_atom(env,"prime192v3");
+    if (valid_curve(NID_X9_62_prime192v3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime192v3");
 #else
 #endif
 #ifdef NID_X9_62_prime239v1
-    if (valid_curve(NID_X9_62_prime239v1)) algo_curve[fips][cnt++] = enif_make_atom(env,"prime239v1");
+    if (valid_curve(NID_X9_62_prime239v1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime239v1");
 #else
 #endif
 #ifdef NID_X9_62_prime239v2
-    if (valid_curve(NID_X9_62_prime239v2)) algo_curve[fips][cnt++] = enif_make_atom(env,"prime239v2");
+    if (valid_curve(NID_X9_62_prime239v2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime239v2");
 #else
 #endif
 #ifdef NID_X9_62_prime239v3
-    if (valid_curve(NID_X9_62_prime239v3)) algo_curve[fips][cnt++] = enif_make_atom(env,"prime239v3");
+    if (valid_curve(NID_X9_62_prime239v3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime239v3");
 #else
 #endif
 #ifdef NID_X9_62_prime256v1
-    if (valid_curve(NID_X9_62_prime256v1)) {
-        algo_curve[fips][cnt++] = enif_make_atom(env,"secp256r1");
-        algo_curve[fips][cnt++] = enif_make_atom(env,"prime256v1");
+    if (valid_curve(NID_X9_62_prime256v1))
+    {
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp256r1");
+        algo_curve[fips][cnt++] = enif_make_atom(env, "prime256v1");
     }
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls7
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls7)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls7");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls7))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls7");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls9
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls9)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls9");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls9))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls9");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls12
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls12)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls12");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls12))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls12");
 #else
 #endif
 #ifdef NID_brainpoolP160r1
-    if (valid_curve(NID_brainpoolP160r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP160r1");
+    if (valid_curve(NID_brainpoolP160r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP160r1");
 #else
 #endif
 #ifdef NID_brainpoolP160t1
-    if (valid_curve(NID_brainpoolP160t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP160t1");
+    if (valid_curve(NID_brainpoolP160t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP160t1");
 #else
 #endif
 #ifdef NID_brainpoolP192r1
-    if (valid_curve(NID_brainpoolP192r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP192r1");
+    if (valid_curve(NID_brainpoolP192r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP192r1");
 #else
 #endif
 #ifdef NID_brainpoolP192t1
-    if (valid_curve(NID_brainpoolP192t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP192t1");
+    if (valid_curve(NID_brainpoolP192t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP192t1");
 #else
 #endif
 #ifdef NID_brainpoolP224r1
-    if (valid_curve(NID_brainpoolP224r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP224r1");
+    if (valid_curve(NID_brainpoolP224r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP224r1");
 #else
 #endif
 #ifdef NID_brainpoolP224t1
-    if (valid_curve(NID_brainpoolP224t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP224t1");
+    if (valid_curve(NID_brainpoolP224t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP224t1");
 #else
 #endif
 #ifdef NID_brainpoolP256r1
-    if (valid_curve(NID_brainpoolP256r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP256r1");
+    if (valid_curve(NID_brainpoolP256r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP256r1");
 #else
 #endif
 #ifdef NID_brainpoolP256t1
-    if (valid_curve(NID_brainpoolP256t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP256t1");
+    if (valid_curve(NID_brainpoolP256t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP256t1");
 #else
 #endif
 #ifdef NID_brainpoolP320r1
-    if (valid_curve(NID_brainpoolP320r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP320r1");
+    if (valid_curve(NID_brainpoolP320r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP320r1");
 #else
 #endif
 #ifdef NID_brainpoolP320t1
-    if (valid_curve(NID_brainpoolP320t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP320t1");
+    if (valid_curve(NID_brainpoolP320t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP320t1");
 #else
 #endif
 #ifdef NID_brainpoolP384r1
-    if (valid_curve(NID_brainpoolP384r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP384r1");
+    if (valid_curve(NID_brainpoolP384r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP384r1");
 #else
 #endif
 #ifdef NID_brainpoolP384t1
-    if (valid_curve(NID_brainpoolP384t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP384t1");
+    if (valid_curve(NID_brainpoolP384t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP384t1");
 #else
 #endif
 #ifdef NID_brainpoolP512r1
-    if (valid_curve(NID_brainpoolP512r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP512r1");
+    if (valid_curve(NID_brainpoolP512r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP512r1");
 #else
 #endif
 #ifdef NID_brainpoolP512t1
-    if (valid_curve(NID_brainpoolP512t1)) algo_curve[fips][cnt++] = enif_make_atom(env,"brainpoolP512t1");
+    if (valid_curve(NID_brainpoolP512t1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "brainpoolP512t1");
 #else
 #endif
-    //#if !defined(OPENSSL_NO_EC2M)        
+        // #if !defined(OPENSSL_NO_EC2M)
 #ifdef NID_sect163k1
-    if (valid_curve(NID_sect163k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect163k1"); 
+    if (valid_curve(NID_sect163k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect163k1");
 #else
 #endif
 #ifdef NID_sect163r1
-    if (valid_curve(NID_sect163r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect163r1"); 
+    if (valid_curve(NID_sect163r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect163r1");
 #else
 #endif
 #ifdef NID_sect163r2
-    if (valid_curve(NID_sect163r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect163r2"); 
+    if (valid_curve(NID_sect163r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect163r2");
 #else
 #endif
 #ifdef NID_sect193r1
-    if (valid_curve(NID_sect193r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect193r1"); 
+    if (valid_curve(NID_sect193r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect193r1");
 #else
 #endif
 #ifdef NID_sect193r2
-    if (valid_curve(NID_sect193r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect193r2"); 
+    if (valid_curve(NID_sect193r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect193r2");
 #else
 #endif
 #ifdef NID_sect233k1
-    if (valid_curve(NID_sect233k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect233k1"); 
+    if (valid_curve(NID_sect233k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect233k1");
 #else
 #endif
 #ifdef NID_sect233r1
-    if (valid_curve(NID_sect233r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect233r1"); 
+    if (valid_curve(NID_sect233r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect233r1");
 #else
 #endif
 #ifdef NID_sect239k1
-    if (valid_curve(NID_sect239k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect239k1"); 
+    if (valid_curve(NID_sect239k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect239k1");
 #else
 #endif
 #ifdef NID_sect283k1
-    if (valid_curve(NID_sect283k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect283k1"); 
+    if (valid_curve(NID_sect283k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect283k1");
 #else
 #endif
 #ifdef NID_sect283r1
-    if (valid_curve(NID_sect283r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect283r1"); 
+    if (valid_curve(NID_sect283r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect283r1");
 #else
 #endif
 #ifdef NID_sect409k1
-    if (valid_curve(NID_sect409k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect409k1"); 
+    if (valid_curve(NID_sect409k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect409k1");
 #else
 #endif
 #ifdef NID_sect409r1
-    if (valid_curve(NID_sect409r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect409r1"); 
+    if (valid_curve(NID_sect409r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect409r1");
 #else
 #endif
 #ifdef NID_sect571k1
-    if (valid_curve(NID_sect571k1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect571k1"); 
+    if (valid_curve(NID_sect571k1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect571k1");
 #else
 #endif
 #ifdef NID_sect571r1
-    if (valid_curve(NID_sect571r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect571r1"); 
+    if (valid_curve(NID_sect571r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect571r1");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb163v1
-    if (valid_curve(NID_X9_62_c2pnb163v1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb163v1");
+    if (valid_curve(NID_X9_62_c2pnb163v1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb163v1");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb163v2
-    if (valid_curve(NID_X9_62_c2pnb163v2)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb163v2");
+    if (valid_curve(NID_X9_62_c2pnb163v2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb163v2");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb163v3
-    if (valid_curve(NID_X9_62_c2pnb163v3)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb163v3");
+    if (valid_curve(NID_X9_62_c2pnb163v3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb163v3");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb176v1
-    if (valid_curve(NID_X9_62_c2pnb176v1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb176v1");
+    if (valid_curve(NID_X9_62_c2pnb176v1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb176v1");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb191v1
-    if (valid_curve(NID_X9_62_c2tnb191v1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb191v1");
+    if (valid_curve(NID_X9_62_c2tnb191v1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb191v1");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb191v2
-    if (valid_curve(NID_X9_62_c2tnb191v2)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb191v2");
+    if (valid_curve(NID_X9_62_c2tnb191v2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb191v2");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb191v3
-    if (valid_curve(NID_X9_62_c2tnb191v3)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb191v3");
+    if (valid_curve(NID_X9_62_c2tnb191v3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb191v3");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb208w1
-    if (valid_curve(NID_X9_62_c2pnb208w1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb208w1");
+    if (valid_curve(NID_X9_62_c2pnb208w1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb208w1");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb239v1
-    if (valid_curve(NID_X9_62_c2tnb239v1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb239v1");
+    if (valid_curve(NID_X9_62_c2tnb239v1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb239v1");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb239v2
-    if (valid_curve(NID_X9_62_c2tnb239v2)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb239v2");
+    if (valid_curve(NID_X9_62_c2tnb239v2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb239v2");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb239v3
-    if (valid_curve(NID_X9_62_c2tnb239v3)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb239v3");
+    if (valid_curve(NID_X9_62_c2tnb239v3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb239v3");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb272w1
-    if (valid_curve(NID_X9_62_c2pnb272w1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb272w1");
+    if (valid_curve(NID_X9_62_c2pnb272w1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb272w1");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb304w1
-    if (valid_curve(NID_X9_62_c2pnb304w1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb304w1");
+    if (valid_curve(NID_X9_62_c2pnb304w1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb304w1");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb359v1
-    if (valid_curve(NID_X9_62_c2tnb359v1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb359v1");
+    if (valid_curve(NID_X9_62_c2tnb359v1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb359v1");
 #else
 #endif
 #ifdef NID_X9_62_c2pnb368w1
-    if (valid_curve(NID_X9_62_c2pnb368w1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2pnb368w1");
+    if (valid_curve(NID_X9_62_c2pnb368w1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2pnb368w1");
 #else
 #endif
 #ifdef NID_X9_62_c2tnb431r1
-    if (valid_curve(NID_X9_62_c2tnb431r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"c2tnb431r1");
+    if (valid_curve(NID_X9_62_c2tnb431r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "c2tnb431r1");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls3
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls3)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls3");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls3");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls5
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls5)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls5");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls5))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls5");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls10
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls10)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls10");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls10))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls10");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls11
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls11)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls11");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls11))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls11");
 #else
 #endif
-    // Non-validated algorithms follow
+        // Non-validated algorithms follow
 #ifdef NID_secp112r1
-    if (valid_curve(NID_secp112r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp112r1"); 
+    if (valid_curve(NID_secp112r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp112r1");
 #else
 #endif
 #ifdef NID_secp112r2
-    if (valid_curve(NID_secp112r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp112r2"); 
+    if (valid_curve(NID_secp112r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp112r2");
 #else
 #endif
 #ifdef NID_secp128r1
-    if (valid_curve(NID_secp128r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp128r1"); 
+    if (valid_curve(NID_secp128r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp128r1");
 #else
 #endif
 #ifdef NID_secp128r2
-    if (valid_curve(NID_secp128r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"secp128r2"); 
+    if (valid_curve(NID_secp128r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "secp128r2");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls6
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls6)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls6");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls6))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls6");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls8
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls8)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls8");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls8))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls8");
 #else
 #endif
-    //#if !defined(OPENSSL_NO_EC2M)
+        // #if !defined(OPENSSL_NO_EC2M)
 #ifdef NID_sect113r1
-    if (valid_curve(NID_sect113r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect113r1"); 
+    if (valid_curve(NID_sect113r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect113r1");
 #else
 #endif
 #ifdef NID_sect113r2
-    if (valid_curve(NID_sect113r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect113r2"); 
+    if (valid_curve(NID_sect113r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect113r2");
 #else
 #endif
 #ifdef NID_sect131r1
-    if (valid_curve(NID_sect131r1)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect131r1"); 
+    if (valid_curve(NID_sect131r1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect131r1");
 #else
 #endif
 #ifdef NID_sect131r2
-    if (valid_curve(NID_sect131r2)) algo_curve[fips][cnt++] = enif_make_atom(env,"sect131r2"); 
+    if (valid_curve(NID_sect131r2))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "sect131r2");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls1
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls1)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls1");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls1))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls1");
 #else
 #endif
 #ifdef NID_wap_wsg_idm_ecid_wtls4
-    if (valid_curve(NID_wap_wsg_idm_ecid_wtls4)) algo_curve[fips][cnt++] = enif_make_atom(env,"wtls4");
+    if (valid_curve(NID_wap_wsg_idm_ecid_wtls4))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "wtls4");
 #else
 #endif
 #ifdef NID_ipsec3
-    if (valid_curve(NID_ipsec3)) algo_curve[fips][cnt++] = enif_make_atom(env,"ipsec3");
+    if (valid_curve(NID_ipsec3))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "ipsec3");
 #else
 #endif
 #ifdef NID_ipsec4
-    if (valid_curve(NID_ipsec4)) algo_curve[fips][cnt++] = enif_make_atom(env,"ipsec4");
+    if (valid_curve(NID_ipsec4))
+        algo_curve[fips][cnt++] = enif_make_atom(env, "ipsec4");
 #else
 #endif
 
-    if (!fips) {
+    if (!fips)
+    {
 #ifdef HAVE_EDDSA
-        algo_curve[fips][cnt++] = enif_make_atom(env,"ed25519");
-        algo_curve[fips][cnt++] = enif_make_atom(env,"ed448");
+        algo_curve[fips][cnt++] = enif_make_atom(env, "ed25519");
+        algo_curve[fips][cnt++] = enif_make_atom(env, "ed448");
 #endif
 #ifdef HAVE_EDDH
-        algo_curve[fips][cnt++] = enif_make_atom(env,"x25519");
-        algo_curve[fips][cnt++] = enif_make_atom(env,"x448");
+        algo_curve[fips][cnt++] = enif_make_atom(env, "x25519");
+        algo_curve[fips][cnt++] = enif_make_atom(env, "x448");
 #endif
     }
 
-    ASSERT(cnt <= sizeof(algo_curve[0])/sizeof(ERL_NIF_TERM));
+    ASSERT(cnt <= sizeof(algo_curve[0]) / sizeof(ERL_NIF_TERM));
 
     return cnt;
 #else /* if not HAVE_EC */
@@ -627,17 +715,18 @@ int init_curves(ErlNifEnv* env, int fips) {
    current cryptolib and current FIPS state.
 */
 
-int valid_curve(int nid) {
+int valid_curve(int nid)
+{
     int ret = 0;
 
 #if defined(HAVE_DH)
-# if defined(HAS_EVP_PKEY_CTX) && (! DISABLE_EVP_DH)
+#if defined(HAS_EVP_PKEY_CTX) && (!DISABLE_EVP_DH)
     EVP_PKEY_CTX *pctx = NULL, *kctx = NULL;
     EVP_PKEY *pkey = NULL, *params = NULL;
-    
+
     if (NULL == (pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL)))
         goto out;
-    
+
     if (1 != EVP_PKEY_paramgen_init(pctx))
         goto out;
 
@@ -650,32 +739,37 @@ int valid_curve(int nid) {
     if (NULL == (kctx = EVP_PKEY_CTX_new(params, NULL)))
         goto out;
 
-    if(1 != EVP_PKEY_keygen_init(kctx))
+    if (1 != EVP_PKEY_keygen_init(kctx))
         goto out;
     if (1 != EVP_PKEY_keygen(kctx, &pkey))
         goto out;
     ret = 1;
- out:
-    if (pkey) EVP_PKEY_free(pkey);
-    if (kctx) EVP_PKEY_CTX_free(kctx);
-    if (params) EVP_PKEY_free(params);
-    if (pctx) EVP_PKEY_CTX_free(pctx);
+out:
+    if (pkey)
+        EVP_PKEY_free(pkey);
+    if (kctx)
+        EVP_PKEY_CTX_free(kctx);
+    if (params)
+        EVP_PKEY_free(params);
+    if (pctx)
+        EVP_PKEY_CTX_free(pctx);
 
-# else
+#else
     EC_KEY *key;
 
     if (NULL == (key = EC_KEY_new_by_curve_name(nid)))
         goto out;
 
-    if(1 != EC_KEY_generate_key(key))
+    if (1 != EC_KEY_generate_key(key))
         goto out;
 
     ret = 1;
- out:
-    if (key) EC_KEY_free(key);
-# endif
+out:
+    if (key)
+        EC_KEY_free(key);
+#endif
 #endif /* HAVE_DH etc */
-    
+
     return ret;
 }
 #endif /* HAVE_EC */
@@ -684,42 +778,42 @@ int valid_curve(int nid) {
   RSA Options
 */
 
-ERL_NIF_TERM rsa_opts_algorithms(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ERL_NIF_TERM rsa_opts_algorithms(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
-    unsigned int cnt  =
+    unsigned int cnt =
         FIPS_MODE() ? algo_rsa_opts_fips_cnt : algo_rsa_opts_cnt;
 
     return enif_make_list_from_array(env, algo_rsa_opts, cnt);
 }
 
-void init_rsa_opts_types(ErlNifEnv* env) {
+void init_rsa_opts_types(ErlNifEnv *env)
+{
     // Validated algorithms first
     algo_rsa_opts_cnt = 0;
 #ifdef HAS_EVP_PKEY_CTX
-# ifdef HAVE_RSA_PKCS1_PSS_PADDING
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_pkcs1_pss_padding");
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_pss_saltlen");
-# endif
-# ifdef HAVE_RSA_MGF1_MD
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_mgf1_md");
-# endif
-# ifdef HAVE_RSA_OAEP_PADDING
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_pkcs1_oaep_padding");
-# endif
-# ifdef HAVE_RSA_OAEP_MD
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_oaep_label");
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_oaep_md");
-# endif
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"signature_md");
+#ifdef HAVE_RSA_PKCS1_PSS_PADDING
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_pkcs1_pss_padding");
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_pss_saltlen");
 #endif
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_pkcs1_padding");
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_x931_padding");
+#ifdef HAVE_RSA_MGF1_MD
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_mgf1_md");
+#endif
+#ifdef HAVE_RSA_OAEP_PADDING
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_pkcs1_oaep_padding");
+#endif
+#ifdef HAVE_RSA_OAEP_MD
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_oaep_label");
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_oaep_md");
+#endif
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "signature_md");
+#endif
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_pkcs1_padding");
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_x931_padding");
 #ifdef HAVE_RSA_SSLV23_PADDING
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_sslv23_padding");
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_sslv23_padding");
 #endif
-    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env,"rsa_no_padding");
+    algo_rsa_opts[algo_rsa_opts_cnt++] = enif_make_atom(env, "rsa_no_padding");
     algo_rsa_opts_fips_cnt = algo_rsa_opts_cnt;
 
-    ASSERT(algo_rsa_opts_cnt <= sizeof(algo_rsa_opts)/sizeof(ERL_NIF_TERM));
+    ASSERT(algo_rsa_opts_cnt <= sizeof(algo_rsa_opts) / sizeof(ERL_NIF_TERM));
 }
-
